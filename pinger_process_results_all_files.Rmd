@@ -403,7 +403,7 @@ if(length(subset$label) > 0) {
 }
 ````
 
-## Last two days of data (all sources)
+## Today (all sources)
 Now we repeat that but just for 'today' and for all sources.
 
 ````{r millisecondsByDateTimeToday, warning = FALSE, fig.cap = "All results for today (if we have any)"}
