@@ -50,7 +50,7 @@ starttime <- Sys.time()
 
 # set paths
 dpath <- "~/Dropbox/pinger/data/" # latest version of gzipped data with missing properly coded
-tpath <- "~/Documents/Work/Data/pinger/tmp/" # where to put temporary output - NOT dropbox!
+tpath <- "~/Data/pinger/tmp/" # where to put temporary output - NOT dropbox!
 
 # load required packages ----
 library(data.table) # fast data manipulation
