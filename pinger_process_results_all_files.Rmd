@@ -2,15 +2,15 @@
 title: "Analysis of pinger results"
 author: "Ben Anderson (@dataknut)"
 output:
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
   html_document:
     fig_caption: yes
     number_sections: yes
     theme: journal
     toc: yes
     toc_depth: 2
-  pdf_document:
-    toc: yes
-    toc_depth: '2'
 ---
 
 ```{r setup, include=FALSE}
