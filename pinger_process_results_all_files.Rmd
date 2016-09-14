@@ -335,7 +335,7 @@ ggplot(allPinger_DT[allPinger_DT$error!="OK"], aes(x = date_hour)) +
        y = "Count"
   ) +
   facet_grid(label ~ .) +
-  scale_x_datetime(date_labels = "%a %d %b", date_breaks = "14 days") +
+  scale_x_datetime(date_labels = "%a %d %b", date_breaks = "7 days") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(strip.text.y = element_text(size = 8, colour = "red", angle = 0))
 ```
@@ -365,7 +365,7 @@ ggplot(allPinger_DT, aes(x = date_hour, y = milliseconds)) +
        y = "Milliseconds"
   ) +
   facet_grid(label ~ .) +
-  scale_x_datetime(date_labels = "%a %d %b", date_breaks = "14 days") +
+  scale_x_datetime(date_labels = "%a %d %b", date_breaks = "7 days") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(strip.text.y = element_text(size = 8, colour = "red", angle = 0))
 ```
