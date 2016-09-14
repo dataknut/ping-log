@@ -491,6 +491,8 @@ ggplot(allPinger_DT,
 * 16:00 - 21:00 is generally the _only_ problem period for the bthub.
 
 ---------------------------------
-Last run: `r Sys.time()`
+Last run: `r Sys.time()` using 
+
+> `r version`
 
 Analysis & Knitr_ing completed in: `r Sys.time() - starttime` seconds using [knitr](https://cran.r-project.org/package=knitr) & [RStudio](http://www.rstudio.com)
