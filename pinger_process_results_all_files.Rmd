@@ -2,15 +2,15 @@
 title: "Analysis of pinger results"
 author: "Ben Anderson (@dataknut)"
 output:
-  pdf_document:
-    toc: yes
-    toc_depth: '2'
   html_document:
     fig_caption: yes
     number_sections: yes
     theme: journal
     toc: yes
     toc_depth: 2
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
 ---
 
 ```{r setup, include=FALSE}
@@ -18,6 +18,7 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(fig_caption = TRUE)
 knitr::opts_chunk$set(tidy = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
 ```
 
 # About this document
@@ -39,9 +40,8 @@ This code processes and anlayses the results of running https://github.com/datak
 
 Note that the R code will only process gzipped .csv files.
 
-````{r, warning = FALSE}
-# Housekeeping ----
-# clear out all old objects etc to avoid confusion
+```{r houseKeeping}
+# clear out all old objects etc to avoid confusion ----
 rm(list = ls()) 
 
 
@@ -58,10 +58,11 @@ library(foreign) # loading SPSS/STATA
 library(ggplot2) # slick & easy graphs
 library(gmodels) # for table proportions
 library(knitr) # for kable
+library(scales) # scales for ggplot
 
 # watch for timing errors - e.g. RPi may be on UTC
 
-````
+```
 
 # Introduction
 Purpose:
@@ -164,7 +165,7 @@ Throughout the following NA usually means ping failed to return.
 
 Files we processed:
 
-````{r loadProcessedData}
+```{r loadProcessedData}
 setwd(tpath) # the glob function seems to fail if we give it the full path...
 # Get file list and load
 filelist <- list.files(pattern = glob2rx(paste0("*_DT.csv", 
@@ -198,10 +199,10 @@ allPinger_DT$r_hour <- as.POSIXlt(allPinger_DT$r_datetime)$hour
 
 # add an 'on the hour' datetime
 allPinger_DT[, date_hour := as.POSIXct(paste0(r_date," ", r_hour, ":00:00"))]
-````
+```
 Loaded `r nrow(allPinger_DT)` rows of data. We will now catch potential ping response errors as follows:
 
-````{r catchPingErrors, echo = TRUE}
+```{r catchPingErrors, echo = TRUE}
 
 # create uncaught error status ----
   # really nead to fix this in the pinger code
@@ -245,7 +246,7 @@ Loaded `r nrow(allPinger_DT)` rows of data. We will now catch potential ping res
 
 We will now recode the sources as follows to make more meaningful labels for the charts etc:
 
-````{r recodeLabels, echo = TRUE}
+```{r recodeLabels, echo = TRUE}
 # this assumes you know where they are and so what might cause any step changes in performance
 # this is very hard to automate unless there is a naming convention for input files
 allPinger_DT$label <- ifelse(grepl("hubpi",allPinger_DT$source),
@@ -260,20 +261,20 @@ allPinger_DT$label <- ifelse(grepl("ms_mbp",allPinger_DT$source),
                              "MrsA_mbp",allPinger_DT$label)
 allPinger_DT$label <- ifelse(grepl("msmbp",allPinger_DT$source),
                              "MrsA_mbp",allPinger_DT$label)
-````
+```
 
 How many rows (cases) & variables across all files?
 
-````{r countsByHost, echo=FALSE}
+```{r countsByHost}
 dim(allPinger_DT)
 kable(
   table(allPinger_DT$label, allPinger_DT$host, useNA = "always")
 )
-````
+```
 
 Distribution of milliseconds?
 
-````{r millisecondsByLabel}
+```{r millisecondsByLabel}
 kable(
   allPinger_DT[,
                . (
@@ -285,24 +286,24 @@ kable(
                by = label
                  ]
 )
-````
+```
 
 
 # Ping error results
 
 Did we get any errors?
 
-````{r errorsByHost}
+```{r errorsByHost}
 kable(
   table(allPinger_DT$error, allPinger_DT$label, useNA = "always")
 )
-````
+```
 
 We should have either error codes or 'OK'. If we have anything else then we have not caught all the errors properly earlier.
 
 What time of day do we tend to get errors?
 
-````{r errorsByHour, warning = FALSE}
+```{r errorsByHour, fig.width=8}
 
 # make a pretty graph of all errors by hour
 # this will stack the counts
@@ -315,13 +316,13 @@ ggplot(allPinger_DT[allPinger_DT$error!="OK"], aes(x = r_hour)) +
   ) +
   facet_grid(label ~ .) +
   theme(strip.text.y = element_text(size = 8, colour = "red", angle = 0))
-````
+```
 
 The bthub pinger seems to only see problems 15:00 - 16:00. As this Pi is 1 hour behind BST this equates to 16:00 - 17:00. The timing of errors for octomac (laptop) is probably not that relevant as this analysis includes data captured when it was outside the home.
 
 The following chart counts errors by hour of each day to see if any particular days have been worse than others. Again ignore unkwon errors on octomac.
 
-````{r errorsByDateHour, warning = FALSE}
+```{r errorsByDateHour, fig.width=8}
 
 # make a pretty graph of all errors by day & hour
 
@@ -334,10 +335,10 @@ ggplot(allPinger_DT[allPinger_DT$error!="OK"], aes(x = date_hour)) +
        y = "Count"
   ) +
   facet_grid(label ~ .) +
-  scale_x_datetime(date_labels = "%a %d %b", date_breaks = "1 day") +
+  scale_x_datetime(date_labels = "%a %d %b", date_breaks = "14 days") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(strip.text.y = element_text(size = 8, colour = "red", angle = 0))
-````
+```
 
 So, most of the relevant errors happened on Friday 29th April. This was a) when the hail/thunderstorm hit at 16:00 and then b) when we subsequently called BT & were 'awarded' a new BTHub. This was installed on the 4th May. Who knows, maybe the old one got fried by the storm - or earlier? Either way, have things improved?
 
@@ -348,14 +349,14 @@ HamishPi, which sits on an internal ethernet segment fed by power line, clearly 
 ## All data
 The following graph shows all ping results for all sources between `r min(allPinger_DT$r_datetime)` and `r max(allPinger_DT$r_datetime)` for all data sources loaded. The dots represent the mean response time per hour and the error bars show +/- 2 s.d. as defined by the R [Hmisc package](http://www.inside-r.org/packages/cran/hmisc/docs/smean.sd). 
 
-````{r millisecondsByDateTime, warning = FALSE, fig.cap = "All results for all days (mean & 2 * s.d.)"}
-# make a pretty graph of all data by time
+```{r millisecondsByDateTime, fig.cap = "All results for all days (mean & 2 * s.d.)", fig.height=15, fig.width=8}
+# make a pretty graph of all data by time with error bars
 
 # create means per hour
 ggplot(allPinger_DT, aes(x = date_hour, y = milliseconds)) + 
   # geom_point() + 
   #(stat = "mean", aes(color = host, col = "Response time (ms)")) +
-  ggtitle("Mean response times (ms) per hour of each day") +
+  ggtitle("Mean response times (ms) per hour of each day with +/-2 * s.d.") +
   aes(colour = host) +
   stat_summary(fun.data = "mean_sdl", size = 0.2) + # mean +/- 2 SD http://www.inside-r.org/packages/cran/hmisc/docs/smean.sd
   theme(legend.position = "bottom") +
@@ -364,28 +365,31 @@ ggplot(allPinger_DT, aes(x = date_hour, y = milliseconds)) +
        y = "Milliseconds"
   ) +
   facet_grid(label ~ .) +
-  scale_x_datetime(date_labels = "%a %d %b", date_breaks = "1 day") +
+  scale_x_datetime(date_labels = "%a %d %b", date_breaks = "14 days") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(strip.text.y = element_text(size = 8, colour = "red", angle = 0))
-````
+```
 
 Beware datetime issues on the Raspberry Pi - they may be one hour behind. This graph will get very big as more data is added and may become less useful as it does so.
 
-## Last two days of data (hubpi only)
-Now we will repeat the analysis without aggregation for the last two days of data that are available and _only_ for the router Pi to be able to inspect the most recent results.
+```{r setCut}
+today <- Sys.Date()
+cut = 3
+cutDate <- today - cut
+```
 
-````{r millisecondsByDateTimeRecent, warning = FALSE, fig.cap = "HubPi results for the last two days (if we have any)"}
+## Last `r cut + 1` days of data (hubpi only)
+Now we will repeat the analysis without aggregation for the last `r cut + 1` days of data that are available and _only_ for the router Pi to be able to inspect the most recent results.
+
+```{r millisecondsByDateTimeRecent, fig.cap = "HubPi results for the last two days (if we have any)", fig.width=8}
 # repeat for yesterday & today
 # this will break if we have no data from today or yesterday for the hubpi
-today <- Sys.Date()
-yesterday <- today - 1
 
-subset <- allPinger_DT[(r_date == today | r_date == yesterday) & label %like% "BThub"]
+subset <- allPinger_DT[(r_date > cutDate) & label %like% "BThub"]
 
 if(length(subset$label) > 0) {
   # then we have data for hubpi for this range
   
-  library(scales)
   ggplot(subset, 
          aes(x = r_datetime, y = milliseconds)) +
     geom_point(aes(color = host, col = "Response time (ms)")) +
@@ -399,14 +403,14 @@ if(length(subset$label) > 0) {
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5)) +
     theme(strip.text.y = element_text(size = 8, colour = "red", angle = 0))
 } else {
-  print("Skipping as we have no data for hubpi.")
+  print("Skipping as we have no data for hubpi for the last 4 days.")
 }
-````
+```
 
 ## Today (all sources)
 Now we repeat that but just for 'today' and for all sources.
 
-````{r millisecondsByDateTimeToday, warning = FALSE, fig.cap = "All results for today (if we have any)"}
+```{r millisecondsByDateTimeToday, fig.cap = "All results for today (if we have any)", fig.width=8}
 # repeat for yesterday & today
 today <- Sys.Date()
 
@@ -431,12 +435,12 @@ if(length(subset$label) > 0) {
 } else {
   print("Skipping as we have no data for this period.")
 }
-````
+```
 
 ## Last 2 hours of data (all sources)
 And finally, repeat that but just for the last two hours.
 
-````{r millisecondsByDateTimeLast2Hours, warning = FALSE, fig.cap = "All results for the last two hours (if we have any)"}
+```{r millisecondsByDateTimeLast2Hours, fig.cap = "All results for the last two hours (if we have any)", fig.width=8}
 # repeat for last 2 hours
 today <- Sys.Date()
 now <- Sys.time()
@@ -461,12 +465,12 @@ if(length(subset$label) > 0) {
 } else {
   print("Skipping as we have no data for this period.")
 }
-````
+```
 
 ## Results by hour (all sources)
 If we now consider the results by hour of the day:
 
-```{r millisecondsByHour, warning = FALSE, fig.cap = "Mean milliseconds by hour"}
+```{r millisecondsByHour, fig.cap = "Mean milliseconds by hour", fig.height=15, fig.width=8}
 # make a pretty graph of all data by hour
 ggplot(allPinger_DT, 
        aes(x = r_hour, y = milliseconds, col = host)) +
@@ -478,7 +482,7 @@ ggplot(allPinger_DT,
   ) +
   facet_grid(label ~ .) +
   theme(strip.text.y = element_text(size = 8, colour = "red", angle = 0))
-````
+```
 
 # Conclusions
 
